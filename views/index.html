@@ -119,6 +119,11 @@
 	<script src="src/js/util/progress_mngr.js"></script>
 	<script src="src/js/util/selectbox_mngr.js"></script>
 
+
+	<script src="src/js/util/pgm_mngr.js"></script>
+	<script src="src/js/util/form_mngr.js"></script>
+	<script src="src/js/util/app_mngr.js"></script>
+
 	<link rel="stylesheet" type="text/css" href="src/common.css" />
 	<link rel="stylesheet" type="text/css" href="src/test.css" />
 	<link rel="stylesheet" type="text/css" href="src/metismenujs/mm-vertical.css" />
@@ -186,10 +191,29 @@
 
 			{{ range $key, $value := .pgm_map_info }}
 			myLayout.registerComponent("{{ $value.pgm_id }}", function (container, state) {
-				container.getElement().load(container._config.pg);
+				var p_param = {
+					uuid : container._config.id
+				}
+
+				//container.getElement().load(container._config.pg);
+				get_page_ajax(container.getElement(),container._config.pg,p_param);
+				
+				container.on("open",function() {
+					/*
+					console.log("-open--:start");
+					console.log("-open--container._config.componentName=>"+container._config.componentName);
+					console.log("-open--container._config.pg=>"+container._config.pg);
+					console.log("-open--container._config.id=>"+container._config.id);
+					console.log("-open--reqMap=>");
+					console.log(reqMap);
+					console.log("-open--pgmMap=>");
+					console.log(pgmMap);
+					console.log("-open--:end");
+					*/
+				});
+
 			});
 			{{ end }}
-
 			
 			myLayout.init();
 
@@ -212,8 +236,6 @@
 				e.preventDefault();
 				var target = $(this).data("target");
 				var title = $(this).data("title");
-				console.log("target=>"+target)
-				console.log("title=>"+title)
 				goPage(target, title);
 			});
 			function goPage(_component_name, _title) {
@@ -222,7 +244,7 @@
 					title: _title,
 					componentName: _component_name,
 					pg: _component_name,
-					id: _component_name,
+					id: getUUID(),
 				};
 				//console.log(myLayout);
 				//이쪽에서 registerComponent를 동적으로 해보았는데
@@ -235,15 +257,14 @@
 				let compName = myLayout.root.getComponentsByName(_component_name);
 				if (compName && compName.length != 0) {
 					var tmp = myLayout.root.getItemsById('stack_window')[0]
-					var tmp_a = myLayout.root.getItemsById(_component_name)[0]
+					var tmp_a = myLayout.root.getItemsByFilter( function( item ) {
+						return item.config.componentName === _component_name;
+					});
+					tmp_a=tmp_a[0];
 					tmp.setActiveContentItem(tmp_a);
 					//focus 이동
 				} else {
 					//창 추가
-					console.log(myLayout.root)
-					console.log(myLayout.root.contentItems);
-					console.log(newItemConfig);
-
 					if(myLayout.root.contentItems.length==0){
 						//stack을 하나 넣어줘야한다.
 						myLayout.root.addChild({
@@ -252,9 +273,29 @@
 							id: "stack_window",
 							content: []
 						})
+						//https://github.com/golden-layout/golden-layout/issues/364
 
 					}
 					myLayout.root.contentItems[0].addChild(newItemConfig);
+					var tmp = myLayout.root.getItemsById('stack_window')[0]
+					var item = tmp.getActiveContentItem();
+					item.container.on("destroy", () => {  /*팝업닫기는 여기*/
+						/*
+						console.log("-destroy--:start");
+						console.log("-destroy--item.config.componentName=>"+item.config.componentName);
+						console.log("-destroy--item.config.pg=>"+item.config.pg);
+						console.log("-destroy--item.config.id=>"+item.config.id);
+						console.log("-destroy--reqMap=>");
+						console.log(reqMap);
+						console.log("-destroy--pgmMap=>");
+						console.log(pgmMap);
+						console.log("-destroy--:end");
+						*/
+						pgmMap.remove(item.config.id);
+						reqMap.remove(item.config.id);
+						//그때 id가져오는 걸 했었는데 기억이 안난다.
+					})   //The middle mouse button
+					//item.container.on("close", () => { alert("ddd2") })       //Close button
 				}
 
 				//myLayout.root.contentItems[0].addChild(newItemConfig);

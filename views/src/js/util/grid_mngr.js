@@ -1,21 +1,20 @@
-function GridMngr(uuid, grid_id, columns, options) {
+function GridMngr(pgm_mngr, grid_name, columns, options) {
   var editedRows = [];
-  var uuid_grid = uuid + "-" + grid_id;
   var tmp = `
     <div style="text-align: left;">
     <div class="grid-header" style="width: 100%;">
       <label>SlickGrid</label>
-      <span style="float: right;" class="ui-icon ui-icon-search" title="Toggle search panel" id="`+ uuid_grid + `-filter"></span>
+      <span style="float: right;" class="ui-icon ui-icon-search" title="Toggle search panel" name="`+ grid_name + `-filter"></span>
     </div>
-    <div id="`+ uuid_grid + `-grid" style="width: 100%; height: 900px" class="example-grid"></div>
-    <div id="`+ uuid_grid + `-pager" style="width: 100%; height: 20px;"></div>
+    <div name="`+ grid_name + `-grid" style="width: 100%; height: 900px" class="example-grid"></div>
+    <div name="`+ grid_name + `-pager" style="width: 100%; height: 20px;"></div>
   </div>
-  <div id="`+ uuid_grid + `-inlineFilterPanel" style="display: none; background: #dddddd; padding: 3px; color: black;">Show tasks with title including <input type="text" id="` + uuid_grid + `-txtSearch" /></div>
+  <div name="`+ grid_name + `-inlineFilterPanel" style="display: none; background: #dddddd; padding: 3px; color: black;">Show tasks with title including <input type="text" name="` + grid_name + `-txtSearch" /></div>
   `
   //$("#"+uuid).remove();
   //이렇게 하면 uuid div가 지워지므로 위는 안됨
-  $("#" + uuid_grid).empty();
-  $("#" + uuid_grid).append(tmp);
+  pgm_mngr.get(grid_name).empty();
+  pgm_mngr.get(grid_name).append(tmp);
   var sortdir = 1;
   var dataView;
   var grid;
@@ -105,7 +104,7 @@ function GridMngr(uuid, grid_id, columns, options) {
     }
     h_columns.push({ name: "ROW_ID", id: "id", field: "id" });  /*유일한 id가 하나 있어야 해서 숨김으로 하나 만들어준다. */
 
-    grid = new Slick.Grid("#" + uuid_grid + "-grid", dataView, o_columns, options);
+    grid = new Slick.Grid(pgm_mngr.get(grid_name+"-grid"), dataView, o_columns, options);
 
     if (options.enableCheckBox == true) {
       selectActiveRow = false;
@@ -131,7 +130,7 @@ function GridMngr(uuid, grid_id, columns, options) {
       // create the Resizer plugin
       // you need to provide a DOM element container for the plugin to calculate available space
       var resizer = new Slick.Plugins.Resizer({
-        container: '#' + uuid, // DOM element selector, can be an ID or a class
+        container: '#' + pgm_mngr.getId(), // DOM element selector, can be an ID or a class
 
         // optionally define some padding and dimensions
         rightPadding: 0,    // defaults to 0
@@ -161,8 +160,7 @@ function GridMngr(uuid, grid_id, columns, options) {
       */
     } else {
       if(options.height) {
-        console.log($("#" + uuid_grid+"-grid"));
-        $("#" + uuid_grid+"-grid").height(options.height);
+        pgm_mngr.get(grid_name+"-grid").height(options.height);
       }
     }
 
@@ -170,7 +168,7 @@ function GridMngr(uuid, grid_id, columns, options) {
     this.grid = grid;
     this.dataView = dataView;
 
-    var pager = new Slick.Controls.Pager(dataView, grid, $("#" + uuid_grid + "-pager"));
+    var pager = new Slick.Controls.Pager(dataView, grid, pgm_mngr.get(grid_name+"-pager"));
 
     grid.onKeyDown.subscribe(function (e) {
       // select all rows on ctrl-a
@@ -299,7 +297,8 @@ function GridMngr(uuid, grid_id, columns, options) {
     dataView.setFilter(myFilter);
 
     // wire up the search textbox to apply the filter to the model
-    $("#" + uuid_grid + "-txtSearch").keyup(function (e) {
+    
+    pgm_mngr.get(grid_name+"-txtSearch").keyup(function (e) {
       Slick.GlobalEditorLock.cancelCurrentEdit();
 
       // clear on Esc
@@ -316,7 +315,7 @@ function GridMngr(uuid, grid_id, columns, options) {
 
 
     /*헤더 모양*/
-    $("#" + uuid_grid + "-filter")
+    pgm_mngr.get(grid_name+"-filter")
       .addClass("ui-state-default ui-corner-all")
       .mouseover(function (e) {
         $(e.target).addClass("ui-state-hover");
@@ -326,10 +325,10 @@ function GridMngr(uuid, grid_id, columns, options) {
       });
 
     /*필터영역 붙이기*/
-    $("#" + uuid_grid + "-inlineFilterPanel").appendTo(grid.getTopPanel()).show();
+    pgm_mngr.get(grid_name+"-inlineFilterPanel").appendTo(grid.getTopPanel()).show();
 
     /*필터 돋보기 버튼 클릭 */
-    $("#" + uuid_grid + "-filter").on("click", function (e) {
+    pgm_mngr.get(grid_name+"-filter").on("click", function (e) {
       grid.setTopPanelVisibility(!grid.getOptions().showTopPanel);
     });
 
@@ -356,23 +355,15 @@ function GridMngr(uuid, grid_id, columns, options) {
       });
 
       grid.onColumnsReordered.subscribe(function (e, args) {
-        console.log('cccc')
         UpdateAllTotals(args.grid);
       });
     }
   }
 
-  function getUUID() { // UUID v4 generator in JavaScript (RFC4122 compliant)
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 3 | 8);
-      return v.toString(16);
-    });
-  }
-
+  
   this.LoadData = function (url, param) {
     grid.setSelectedRows([]);  /*체크박스가 있다면 선택을 지움*/
-    var progressMngr = new ProgressMngr(uuid);
-    progressMngr.showProgress();
+    pgm_mngr.showProgress();
     send_post_ajax(url, param, function (data) {
       /* 그리드 칸을 모두 지운다음에 */
       /*초기화*/
@@ -388,7 +379,7 @@ function GridMngr(uuid, grid_id, columns, options) {
 
       /*데이터 다시 세팅 */
       dataView.setItems(data);
-      progressMngr.hideProgress();
+      pgm_mngr.hideProgress();
 
       if (options.showTotalSummary == true) {
         UpdateAllTotals(grid,showTotalSummaryColumn)
@@ -446,10 +437,8 @@ function GridMngr(uuid, grid_id, columns, options) {
   }
 
   function UpdateAllTotals(grid, showTotalSummaryColumn) {
-    console.log("bbb")
     if (showTotalSummaryColumn) {
       for (var i = 0; i < showTotalSummaryColumn.length; i++) {
-        console.log("bbb111")
         UpdateTotal(showTotalSummaryColumn[i], grid);
       }
     }
@@ -458,7 +447,6 @@ function GridMngr(uuid, grid_id, columns, options) {
   function UpdateTotal(columnId, grid) {
     var total = 0;
     var i = dataView.getLength();
-    console.log('aa')
     while (i--) {
       total += (parseInt(dataView.getItemByIdx(i)[columnId], 10) || 0);
     }

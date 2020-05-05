@@ -1,5 +1,7 @@
 <script>
-  $(function () {
+  var KIW_0200 = function () {
+    var _this = this;
+    var searchForm = new PgmForm(_this, "search_area");
     var columns = [
       {
         name: "#",
@@ -46,27 +48,30 @@
       editable: false /*수정여부*/,
       enableAddRow: false /*행 추가 여부*/,
     };
-    var grid = new GridMngr("{{.uuid}}","grid", columns, options);
+    var grid = new GridMngr(_this, "grid", columns, options);
     grid.showTotalSummary(["curr_amt"]);
     grid.build();
 
     /*조회버튼*/
-    $("#{{.uuid}}-search").on("click", function (e) {
-      e.preventDefault();
+    searchForm.addEvent("search", "click", function (e) {
       var param = {
-        stock_cd: $("#{{.uuid}}-stock_cd").val(),
+        stock_cd: searchForm.get("stock_cd").val(),
       };
       grid.LoadData("chejan_order_data", param);
     });
-  });
+  };
 </script>
 <div id="{{.uuid}}">
-  <table>
-    <tr>
-      <td>종목</td>
-      <td><input type="text" id="{{.uuid}}-stock_cd" /></td>
-      <td><input type="button" id="{{.uuid}}-search" value="조회" /></td>
-    </tr>
-  </table>
-  <div id="{{.uuid}}-grid"></div>
+  <div name="search_area">
+    <table>
+      <tr>
+        <td>종목</td>
+        <td><input type="text" name="stock_cd" /></td>
+        <td><input type="button" name="search" value="조회" /></td>
+      </tr>
+    </table>
+  </div>
+
+  <div name="grid"></div>
 </div>
+{{include "templates/footer" }}

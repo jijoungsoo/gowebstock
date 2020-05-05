@@ -25,6 +25,14 @@ import (
 
 var map_url map[string]string
 
+type (
+	// transformedTodo represents a formatted todo
+	PgmData struct {
+		PgmId string `json:"pgm_id" `
+		Uuid  string `json:"uuid" `
+	}
+)
+
 func get_to(c *gin.Context) {
 	c.Header("Content-Type", "text/html")
 	//views폴더가 자동으로 지정되는 듯하다. view로 폴더이름 했을땐 에러났다.
@@ -37,12 +45,32 @@ func get_to(c *gin.Context) {
 	fmt.Println(tmp + ".html")
 	c.Header("Content-Type", "text/html")
 	//views폴더가 자동으로 지정되는 듯하다. view로 폴더이름 했을땐 에러났다.
-	uuid1, err := uuid.NewV4()
-	if err != nil {
-		panic(err)
+
+	//request로 uuid가 넘어온다면 !!!
+	//생성하지 말고 넘어온 uuid값을 가지고 표시힌다.
+	var json_tmp PgmData //array로 감싸서 넘겨야한다. []
+	if err := c.ShouldBindJSON(&json_tmp); err != nil {
+		//에러가 날수있다. uuid가 없으면 통과.
+		//	fmt.Printf("error %s\n", err)
+		//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		//	return
+
 	}
+	uuid1 := json_tmp.Uuid
+
+	if uuid1 == "" {
+		uuid2, err := uuid.NewV4()
+		if err != nil {
+			panic(err)
+		}
+		uuid1 = uuid2.String()
+	}
+
 	fmt.Println(uuid1)
-	c.HTML(http.StatusOK, tmp+".html", gin.H{"uuid": uuid1})
+	c.HTML(http.StatusOK, tmp+".html", gin.H{
+		"pgm_id": pgm_id,
+		"uuid":   uuid1,
+	})
 }
 
 func main() {
@@ -200,7 +228,7 @@ func main() {
 	/*이 방법이 베스트 였는데 서버를 껐다 켜야하는 단점이 있다.*/
 	for key, _ := range map_url {
 		//fmt.Println(key, val)
-		r.GET(key, get_to)
+		r.POST(key, get_to)
 	}
 
 	// for range 문을 사용하여 모든 맵 요소 출력

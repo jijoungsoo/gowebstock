@@ -1,5 +1,8 @@
 <script>
-  $(function () {
+  var CM_0400 = function () {
+    var _this = this;
+    var searchForm1 = new PgmForm(_this, "search_area1");
+    var searchForm2 = new PgmForm(_this, "search_area2");
     function requiredFieldValidator(value) {
       console.log(value)
       if (value == null || value == undefined || !value.length) {
@@ -35,26 +38,23 @@
       enableAddRow: true /*행 추가 여부*/,
       autoEdit: true   /*셀에 커서를 두면 자동으로 수정모드 되는게 true, 더블 클릭해서 수정 박스가 뜨는게 false*/,
       showNumber: true,
-      height:500
+      height: 500
     };
 
 
-    var grid1 = new GridMngr("{{.uuid}}", "grid1", columns, options);
+    var grid1 = new GridMngr(_this, "grid1", columns, options);
     grid1.build();
-    var grid2 = new GridMngr("{{.uuid}}", "grid2", columns_detail, options);
+    var grid2 = new GridMngr(_this, "grid2", columns_detail, options);
     grid2.build();
 
 
-    grid1.onClick(function (e, p_args,grid) {
-      var cell = grid.getCellFromEvent(e);
-      if (grid.getColumns()[cell.cell].id == "grp_cd") {
-        if (!grid.getEditorLock().commitCurrentEdit()) {
+    grid1.onClick(function (e, p_args, p_grid) {
+      var cell = p_grid.getCellFromEvent(e);
+      if (p_grid.getColumns()[cell.cell].id == "grp_cd") {
+        if (!p_grid.getEditorLock().commitCurrentEdit()) {
           return;
         }
-        console.log(grid)
         var rd = grid1.dataView.getItem(cell.row);
-        //rd.stock_cd;
-
         if (rd == undefined) {
           return;
         }
@@ -66,21 +66,18 @@
           grp_cd: rd.grp_cd
         }
         grid2.LoadData("cd_mngr_data", param);
-
         //data[cell.row].priority = states[data[cell.row].priority];
         e.stopPropagation();
       }
     });
 
     /*조회버튼*/
-    $("#{{.uuid}}-grid1-search").on("click", function (e) {
-      e.preventDefault();
+    searchForm1.addEvent("grid1-search", "click", function (e) {
       grid1.LoadData("cd_grp_mngr_data", null);
     });
 
     /*저장*/
-    $("#{{.uuid}}-grid1-save").on("click", function (e) {
-      e.preventDefault();
+    searchForm1.addEvent("grid1-save", "click", function (e) {
       if (grid1.Validate() == false) {
         return;
       }
@@ -106,12 +103,11 @@
       }
 
       send_post_ajax("insert_cd_grp_mngr_data", p_param, function (data) {
-        $("#{{.uuid}}-grid1-search").trigger("click");
+        searchForm1.get("grid1-search").trigger("click");
       });
     });
     /*상세저장*/
-    $("#{{.uuid}}-grid2-save").on("click", function (e) {
-      e.preventDefault();
+    searchForm2.addEvent("grid2-save", "click", function (e) {
       if (grid2.Validate() == false) {
         return;
       }
@@ -139,27 +135,33 @@
       }
 
       send_post_ajax("insert_cd_mngr_data", p_param, function (data) {
-        $("#{{.uuid}}-grid1-search").trigger("click");
+        searchForm1.get("grid1-search").trigger("click");
       });
     });
-    $("#{{.uuid}}-grid1-search").trigger("click");
-  });
+    searchForm1.get("grid1-search").trigger("click");
+  }
 </script>
 <div id="{{.uuid}}">
-  <table>
-    <tr>
-      <td><input type="button" id="{{.uuid}}-grid1-search" value="조회" /></td>
-      <td><input type="button" id="{{.uuid}}-grid1-save" value="저장" /></td>
-    </tr>
-  </table>
-  <div id="{{.uuid}}-grid1"></div>
+  <div name="search_area1">
+    <table>
+      <tr>
+        <td><input type="button" name="grid1-search" value="조회" /></td>
+        <td><input type="button" name="grid1-save" value="저장" /></td>
+      </tr>
+    </table>
+  </div>
+
+  <div name="grid1"></div>
 
   <hr />
+  <div name="search_area2">
+    <table>
+      <tr>
+        <td><input type="button" name="grid2-save" value="저장" /></td>
+      </tr>
+    </table>
+  </div>
 
-  <table>
-    <tr>
-      <td><input type="button" id="{{.uuid}}-grid2-save" value="저장" /></td>
-    </tr>
-  </table>
-  <div id="{{.uuid}}-grid2"></div>
+  <div name="grid2"></div>
 </div>
+{{include "templates/footer" }}

@@ -1,4 +1,4 @@
-function SelectBoxMngr(uuid, p_url, p_param) {
+function SelectBoxMngr(form_mngr,name, p_url, p_param) {
 /*https://select2.org/data-sources/formats*/
 
 /* pagination
@@ -48,10 +48,9 @@ id,text형태로 받는다.
       tmp.push({id: data[i].cd , text : data[i].cd_nm});
     }
     
-    $('#'+uuid).select2( {
+    form_mngr.get(name).select2( {
       data: tmp,
       width: 200  
     });
-    console.log($('#'+uuid))
   })
 }

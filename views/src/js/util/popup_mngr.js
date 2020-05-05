@@ -1,9 +1,10 @@
-function PopupManger(uuid, page_id, options, p_param) {  /*page_id로 페이지내에 유일한 div로 생각한다. 앞에서 넘길때  uuid까지 조합해서 만들어야한다. */
+function PopupManger(pgm_mngr, page_id, options, p_param) {  /*page_id로 페이지내에 유일한 div로 생각한다. 앞에서 넘길때  uuid까지 조합해서 만들어야한다. */
     /*
     아이디어들 ==>
     https://gist.github.com/craigmccoy/3753941
     https://stackoverflow.com/questions/3837166/jquery-load-modal-dialog-contents-via-ajax
     */
+   var uuid = pgm_mngr.getId();
     var defaults = {
         dialogClass: "no-close",
         appendTo: "#" + uuid,   /*이건 사실 큰 의 미 없다. */
@@ -45,6 +46,11 @@ function PopupManger(uuid, page_id, options, p_param) {  /*page_id로 페이지�
         });
     */
    
+    //
+    var popup_uuid=getUUID() ;
+    //uuid="+popup_uuid
+    var p_param = $.extend(p_param, {uuid : popup_uuid});
+
     var req = $.ajax({
         type: "POST",
         url: page_id,
@@ -55,7 +61,9 @@ function PopupManger(uuid, page_id, options, p_param) {  /*page_id로 페이지�
     });
 
     req.done(function (data) {
+        reqMap[popup_uuid]=JSON.stringify(p_param); /*파라미터를 넣는다. */
         $("#" + uuid + "-" + page_id + "-popup").html(data);
+       
     });
 
     req.fail(function (jqXHR, textStatus) {

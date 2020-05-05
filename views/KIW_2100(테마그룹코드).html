@@ -1,10 +1,12 @@
 <script>
-  $(function () {
+  var KIW_2100 = function () {
+    var _this=this;
+    var searchForm = new PgmForm(_this, "search_area");
     var columns = [
-      { name: "테마코드", id: "theme_cd", field: "theme_cd" ,width:100 },
-      { name: "테마명", id: "theme_nm", field: "theme_nm" ,width:200},
-      { name: "종목코드 수", id: "stock_cnt", field: "stock_cnt"  ,width:200},
-      { name: "종목코드", id: "list_stock_cd", field: "list_stock_cd"  ,width:400},      
+      { name: "테마코드", id: "theme_cd", field: "theme_cd", width: 100 },
+      { name: "테마명", id: "theme_nm", field: "theme_nm", width: 200 },
+      { name: "종목코드 수", id: "stock_cnt", field: "stock_cnt", width: 200 },
+      { name: "종목코드", id: "list_stock_cd", field: "list_stock_cd", width: 400 },
     ];
 
     var options = {
@@ -13,21 +15,25 @@
       autoResize: true,
       showNumber: true
     };
-    var grid = new GridMngr("{{.uuid}}","grid", columns, options);
+    var grid = new GridMngr(_this, "grid", columns, options);
     grid.build();
+
     /*조회버튼*/
-    $("#{{.uuid}}-search").on("click", function (e) {
-      e.preventDefault();
+    searchForm.addEvent("search", "click", function (e) {
       grid.LoadData("theme_cd_data", null);
     });
-    $("#{{.uuid}}-search").trigger("click");
-  });
+    searchForm.get("search").trigger("click");
+  }
 </script>
 <div id="{{.uuid}}">
-  <table>
-    <tr>
-      <td><input type="button" id="{{.uuid}}-search" value="조회" /></td>
-    </tr>
-  </table>
-  <div id="{{.uuid}}-grid"></div>
+  <div name="search_area">
+    <table>
+      <tr>
+        <td><input type="button" name="search" value="조회" /></td>
+      </tr>
+    </table>
+  </div>
+
+  <div name="grid"></div>
 </div>
+{{include "templates/footer" }}

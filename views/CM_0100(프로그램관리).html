@@ -1,9 +1,11 @@
 <script>
-  $(function () {
+  var CM_0100 = function () {
+    var _this = this;
+
+
+    var searchForm = new PgmForm(_this,"search_area");
 
     function requiredFieldValidator(value) {
-      console.log('requiredFieldValidator')
-      console.log(value)
       if (value == null || value == undefined || !value.length) {
         return { valid: false, msg: "This is a required field" };
       } else {
@@ -29,18 +31,16 @@
       showDbSave: true /*지정수가 넣은 값 db에서 불러온 값인지 보이기*/
     };
 
-    var grid = new GridMngr("{{.uuid}}", "grid", columns, options);
+    var grid = new GridMngr(_this, "grid", columns, options);
     grid.build();
 
     /*조회버튼*/
-    $("#{{.uuid}}-search").on("click", function (e) {
-      e.preventDefault();
+    searchForm.addEvent("search", "click", function (e) {
       grid.LoadData("pgm_mngr_data", null);
     });
 
     /*저장*/
-    $("#{{.uuid}}-save").on("click", function (e) {
-      e.preventDefault();
+    searchForm.addEvent("save", "click", function (e) {
       if (grid.Validate() == false) {
         return;
       }
@@ -68,13 +68,12 @@
       }
 
       send_post_ajax("insert_pgm_mngr_data", p_param, function (data) {
-        $("#{{.uuid}}-search").trigger("click");
+        searchForm.get("search").trigger("click");
       });
     });
 
     /*삭제*/
-    $("#{{.uuid}}-del").on("click", function (e) {
-      e.preventDefault();
+    searchForm.addEvent("del", "click", function (e) {
       var arr_data = grid.GetCheckedData();  /*행번호를 가져온다. */
       if (arr_data.length <= 0) {
         alert("삭제할 행을 선택해주세요");
@@ -89,19 +88,27 @@
       });
 
       send_post_ajax("delete_pgm_mngr_data", tmp_param, function (data) {
-        $("#{{.uuid}}-search").trigger("click");
+        searchForm.get("search").trigger("click");
       });
     });
-    $("#{{.uuid}}-search").trigger("click");
-  });
+    searchForm.get("search").trigger("click");
+  }
+    //https://chenyitian.gitbooks.io/gin-tutorials/gin/8.html
+    //https://gohugo.io/templates/introduction/
+    //https://levelup.gitconnected.com/using-go-templates-for-effective-web-development-f7df10b0e4a0
+    //footer.tmpl
 </script>
 <div id="{{.uuid}}">
-  <table>
-    <tr>
-      <td><input type="button" id="{{.uuid}}-search" value="조회" /></td>
-      <td><input type="button" id="{{.uuid}}-save" value="저장" /></td>
-      <td><input type="button" id="{{.uuid}}-del" value="삭제" /></td>
-    </tr>
-  </table>
-  <div id="{{.uuid}}-grid"></div>
+  <div name="search_area">
+    <table>
+      <tr>
+        <td><input type="button" name="search" value="조회" /></td>
+        <td><input type="button" name="save" value="저장" /></td>
+        <td><input type="button" name="del" value="삭제" /></td>
+      </tr>
+    </table>
+  </div>
+  <div name="grid"></div>
 </div>
+<!--하단에 공통으로 스크립트를 넣을 것이 필요하다.-->
+{{include "templates/footer" }}

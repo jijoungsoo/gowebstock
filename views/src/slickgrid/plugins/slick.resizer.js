@@ -268,9 +268,9 @@
         if (!_gridOptions.autoHeight) {
           _gridDomElm.height(newHeight);
         }
-        console.log('aaa');
-        console.log('newWidth=>'+newWidth);
-        console.log('newHeight=>'+newHeight);
+        //console.log('aaa');
+        //console.log('newWidth=>'+newWidth);
+        //console.log('newHeight=>'+newHeight);
         
         _gridDomElm.width(newWidth);
 
